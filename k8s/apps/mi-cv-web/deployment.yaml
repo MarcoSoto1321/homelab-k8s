@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mi-cv-web
+  namespace: apps
+  labels:
+    app: mi-cv-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mi-cv-web
+  template:
+    metadata:
+      labels:
+        app: mi-cv-web
+    spec:
+      containers:
+        - name: mi-cv-web
+          image: ghcr.io/marcosoto1321/mi-cv-web:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+      imagePullSecrets:
+        - name: ghcr-secret
