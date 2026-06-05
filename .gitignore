@@ -1,0 +1,17 @@
+# Secretos — NUNCA commitear
+**/secret.yaml
+**/.env
+**/.env.local
+*.env
+
+# Backups locales
+backups/
+
+# Archivos de sistema
+.DS_Store
+*.swp
+*.swo
+
+# kubeconfig local
+kubeconfig
+*.kubeconfig

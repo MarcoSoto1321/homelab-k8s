@@ -1,0 +1,18 @@
+# K3s incluye local-path-provisioner por defecto.
+# Este archivo lo marca como StorageClass default explícitamente
+# y documenta la configuración.
+#
+# El storage físico vive en el NVMe via Argon NEO 5 HAT.
+# Path base: /var/lib/rancher/k3s/storage/
+#
+# NOTA: En Fase 7 (multi-nodo) reemplazar por Longhorn.
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
