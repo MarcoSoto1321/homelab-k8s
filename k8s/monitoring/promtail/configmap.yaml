@@ -9,15 +9,13 @@ data:
       http_listen_port: 9080
       grpc_listen_port: 0
       log_level: warn
-
     positions:
       filename: /tmp/positions.yaml
-
     clients:
       - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
-
     scrape_configs:
-      # Logs de contenedores via /var/log/containers (symlinks a /var/log/pods)
+
+      # Logs de contenedores K8s via /var/log/containers
       - job_name: kubernetes-containers
         static_configs:
           - targets:
@@ -35,12 +33,22 @@ data:
               pod:
               container:
 
-      # Logs del sistema
-      - job_name: node-logs
-        static_configs:
-          - targets:
-              - localhost
-            labels:
-              job: node-logs
-              host: raspberry-pi-5
-              __path__: /var/log/syslog
+      # Logs del sistema via journald (Raspberry Pi OS no tiene syslog en archivo)
+      - job_name: journal
+        journal:
+          path: /run/log/journal
+          max_age: 12h
+          labels:
+            job: journal
+            host: raspberry-pi-5
+        relabel_configs:
+          - source_labels: [__journal__systemd_unit]
+            target_label: unit
+          - source_labels: [__journal__hostname]
+            target_label: hostname
+          - source_labels: [__journal_priority_keyword]
+            target_label: level
+        pipeline_stages:
+          - labels:
+              unit:
+              level:
