@@ -1,0 +1,27 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: mi-cv-web-updater
+  namespace: argocd
+spec:
+  # Configuración global de write-back a Git
+  writeBackConfig:
+    method: git
+    gitConfig:
+      repository: https://github.com/MarcoSoto1321/homelab-k8s
+      branch: main
+
+  # Configuración global de update strategy
+  commonUpdateSettings:
+    updateStrategy: digest
+    pullSecret: secret:argocd/argocd-image-updater-secret#git.token
+    # Solo ARM64 — tu Pi
+    platforms:
+      - linux/arm64
+
+  # Qué apps gestionar y qué imágenes vigilar
+  applicationRefs:
+    - namePattern: apps
+      images:
+        - alias: mi-cv-web
+          imageName: ghcr.io/marcosoto1321/mi-cv-web:latest
