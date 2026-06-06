@@ -19,10 +19,8 @@ spec:
         - name: mi-cv-web
           image: ghcr.io/marcosoto1321/mi-cv-web:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 80
           env:
-            - name: NODE_ENV
-              value: "production"
           resources:
             requests:
               memory: "64Mi"
