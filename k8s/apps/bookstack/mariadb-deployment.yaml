@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstack-db
+  namespace: apps
+  labels:
+    app: bookstack-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookstack-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: bookstack-db
+    spec:
+      containers:
+        - name: mariadb
+          image: lscr.io/linuxserver/mariadb:latest
+          ports:
+            - containerPort: 3306
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: MYSQL_DATABASE
+              value: "bookstackapp"
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: bookstack-db-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bookstack-db-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bookstack-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /config
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: bookstack-db-pvc
