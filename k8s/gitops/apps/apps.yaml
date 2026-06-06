@@ -18,7 +18,7 @@ spec:
   project: default
   source:
     directory:
-      exclude: '{**/*.example.yaml,**/values.yaml}'
+      exclude: "{**/*.example.yaml,**/values.yaml,**/mi-cv-web/**}"
       recurse: true
     path: k8s/apps
     repoURL: https://github.com/MarcoSoto1321/homelab-k8s
