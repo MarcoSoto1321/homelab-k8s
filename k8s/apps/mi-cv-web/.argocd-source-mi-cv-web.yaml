@@ -1,0 +1,3 @@
+kustomize:
+  images:
+  - ghcr.io/marcosoto1321/mi-cv-web:latest@sha256:5bb2f98ba9e00ccccb014bc737ad02c6653f912aaac83b9a7771e7f11ce41252
