@@ -15,3 +15,6 @@ backups/
 # kubeconfig local
 kubeconfig
 *.kubeconfig
+
+# Secretos de values.yaml
+k8s/monitoring/prometheus-grafana/values.yaml

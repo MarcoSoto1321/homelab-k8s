@@ -1,0 +1,247 @@
+# kube-prometheus-stack values.yaml
+# Optimizado para Raspberry Pi 5 (ARM64, 8GB RAM, single-node K3s)
+# Versión del chart: 65.x (kube-prometheus-stack)
+# Instalación: ver README.md en este mismo directorio
+
+# =============================================================================
+# PROMETHEUS
+# =============================================================================
+prometheus:
+  prometheusSpec:
+    # Retención de 7 días — equilibrio entre historia útil y uso de disco
+    retention: 7d
+    retentionSize: "4GB"
+
+    # Recursos conservadores para Pi 5
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # Almacenamiento en NVMe via local-path provisioner
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 8Gi
+
+    # Scrape interval más conservador para reducir carga en Pi
+    scrapeInterval: "30s"
+    evaluationInterval: "30s"
+
+    # En K3s single-node necesitamos relajar la selección de namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+# =============================================================================
+# GRAFANA
+# =============================================================================
+grafana:
+  enabled: true
+
+  # Admin password — cambiar antes de aplicar o usar Secret externo
+  adminPassword: "REEMPLAZAR_CON_PASSWORD_SEGURA"
+
+  # Dominio de acceso
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - grafana.marco-sr.duckdns.org
+    paths:
+      - /
+    pathType: Prefix
+
+  # Persistencia para dashboards y configuración custom
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Datasources preconfigurados — Prometheus y Loki
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring.svc.cluster.local:3100
+      access: proxy
+      isDefault: false
+
+  # Dashboards adicionales via sidecar (se cargan automáticamente)
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+
+  grafana.ini:
+    server:
+      domain: grafana.marco-sr.duckdns.org
+      root_url: "https://grafana.marco-sr.duckdns.org"
+    # Deshabilitar registro público — acceso solo con credenciales
+    users:
+      allow_sign_up: false
+
+# =============================================================================
+# ALERTMANAGER
+# =============================================================================
+alertmanager:
+  enabled: true
+
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 50m
+        memory: 64Mi
+
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+
+  config:
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by: ["alertname", "namespace"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: telegram-homelab
+      routes:
+        - matchers:
+            - alertname = "Watchdog"
+          receiver: blackhole
+        - matchers:
+            - severity = "critical"
+          receiver: telegram-homelab
+          repeat_interval: 1h
+        - matchers:
+            - severity = "warning"
+          receiver: telegram-homelab
+          repeat_interval: 4h
+
+    receivers:
+      - name: telegram-homelab
+        telegram_configs:
+          - bot_token: "REEMPLAZAR_CON_BOT_TOKEN_DE_BOTFATHER"
+            chat_id: REEMPLAZAR_CON_CHAT_ID_DEL_GRUPO # número entero, ej: -1001234567890
+            parse_mode: HTML
+            message: |
+              {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} <b>{{ .GroupLabels.alertname }}</b>
+
+              {{ range .Alerts }}
+              <b>Severidad:</b> {{ .Labels.severity }}
+              <b>Namespace:</b> {{ .Labels.namespace }}
+              {{ if .Labels.pod }}<b>Pod:</b> {{ .Labels.pod }}{{ end }}
+              <b>Descripción:</b> {{ .Annotations.description }}
+              <b>Desde:</b> {{ .StartsAt.Format "02/01 15:04" }}
+              {{ end }}
+
+      - name: blackhole
+
+    inhibit_rules:
+      - source_matchers:
+          - severity = "critical"
+        target_matchers:
+          - severity = "warning"
+        equal: ["namespace", "alertname"]
+
+# =============================================================================
+# NODE EXPORTER
+# =============================================================================
+# DaemonSet — corre en todos los nodos (hoy uno, mañana los que haya)
+nodeExporter:
+  enabled: true
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+
+# =============================================================================
+# KUBE STATE METRICS
+# =============================================================================
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+
+# =============================================================================
+# COMPONENTES DE K3s — AJUSTES ESPECÍFICOS
+# =============================================================================
+# K3s no expone algunos endpoints igual que K8s estándar
+# Deshabilitamos los que no aplican para evitar errores de scrape
+
+kubeControllerManager:
+  enabled: false # K3s lo embebe, no es scrapeble por separado
+
+kubeScheduler:
+  enabled: false # ídem
+
+kubeEtcd:
+  enabled: false # K3s usa SQLite o etcd embebido, no expone métricas estándar
+
+kubeProxy:
+  enabled: false # K3s usa kube-proxy pero no expone el endpoint por defecto
+
+# kubelet y apiserver sí funcionan en K3s
+kubelet:
+  enabled: true
+
+kubeApiServer:
+  enabled: true
+
+# =============================================================================
+# PROMETHEUS OPERATOR
+# =============================================================================
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  # ARM64 — asegurar que use las imágenes correctas
+  admissionWebhooks:
+    patch:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi

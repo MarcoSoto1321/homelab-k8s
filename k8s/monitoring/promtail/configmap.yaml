@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: monitoring
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+      log_level: warn
+
+    positions:
+      filename: /tmp/positions.yaml
+
+    clients:
+      - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+    scrape_configs:
+      # Logs de contenedores via /var/log/containers (symlinks a /var/log/pods)
+      - job_name: kubernetes-containers
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: kubernetes-containers
+              __path__: /var/log/containers/*.log
+        pipeline_stages:
+          - cri: {}
+          - regex:
+              expression: '^.+/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_[^/]+/(?P<container>[^/]+)-[^.]+\.log$'
+              source: filename
+          - labels:
+              namespace:
+              pod:
+              container:
+
+      # Logs del sistema
+      - job_name: node-logs
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: node-logs
+              host: raspberry-pi-5
+              __path__: /var/log/syslog
