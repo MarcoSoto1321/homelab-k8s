@@ -82,10 +82,10 @@
 
 **Fecha:** Pendiente
 
-- [ ] Prometheus + Grafana + Loki
-- [ ] cAdvisor como DaemonSet
-- [ ] Node Exporter como DaemonSet
-- [ ] Alertmanager + Slack
+- [x] Prometheus + Grafana + Loki
+- [x] cAdvisor como DaemonSet
+- [x] Node Exporter como DaemonSet
+- [x] Alertmanager + Telegram
 
 ---
 
