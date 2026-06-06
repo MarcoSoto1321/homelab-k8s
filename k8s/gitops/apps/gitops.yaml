@@ -11,7 +11,7 @@ spec:
   source:
     directory:
       recurse: true
-      exclude: "{**/*.example.yaml,**/values.yaml,mi-cv-web/**,.argocd-source-*.yaml}"
+      exclude: "{**/*.example.yaml,**/values.yaml,mi-cv-web/**,.argocd-source-*.yaml,web-apps/**}"
     path: k8s/gitops
     repoURL: https://github.com/MarcoSoto1321/homelab-k8s
     targetRevision: HEAD
