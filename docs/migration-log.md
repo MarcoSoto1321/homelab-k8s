@@ -29,8 +29,8 @@
 
 ### Pendiente Fase 0
 
-- [ ] Cambiar contraseñas expuestas en variables de entorno (ver `docs/services.md` — columna 🔑)
-- [ ] Crear repositorio en GitHub y hacer primer push
+- [x] Cambiar contraseñas expuestas en variables de entorno (ver `docs/services.md` — columna 🔑)
+- [x] Crear repositorio en GitHub y hacer primer push
 
 ---
 
@@ -40,12 +40,12 @@
 
 ### Pendiente
 
-- [ ] Instalar K3s en la Pi 5 (single-node, ARM64)
-- [ ] Verificar coexistencia Docker + K3s
-- [ ] Configurar `local-path` provisioner apuntando al NVMe
-- [ ] Verificar Traefik Ingress Controller (viene con K3s)
-- [ ] Crear namespaces: `apps`, `monitoring`, `infra`
-- [ ] Configurar kubeconfig y acceso remoto desde Mac/PC
+- [x] Instalar K3s en la Pi 5 (single-node, ARM64)
+- [x] Verificar coexistencia Docker + K3s
+- [x] Configurar `local-path` provisioner apuntando al NVMe
+- [x] Verificar Traefik Ingress Controller (viene con K3s)
+- [x] Crear namespaces: `apps`, `monitoring`, `infra`
+- [-] Configurar kubeconfig y acceso remoto desde Mac/PC
 
 ---
 
@@ -53,8 +53,8 @@
 
 **Fecha:** Pendiente
 
-- [ ] Homepage
-- [ ] Stirling PDF
+- [x] Homepage
+- [x] Stirling PDF
 
 ---
 
@@ -62,10 +62,10 @@
 
 **Fecha:** Pendiente
 
-- [ ] Vaultwarden
-- [ ] n8n
-- [ ] Trilium
-- [ ] Vikunja
+- [x] Vaultwarden
+- [x] n8n
+- [x] Trilium
+- [x] Vikunja
 
 ---
 
@@ -73,8 +73,8 @@
 
 **Fecha:** Pendiente
 
-- [ ] Bookstack + MariaDB
-- [ ] Wiki.js + PostgreSQL
+- [x] Bookstack + MariaDB
+- [x] Wiki.js + PostgreSQL
 
 ---
 
