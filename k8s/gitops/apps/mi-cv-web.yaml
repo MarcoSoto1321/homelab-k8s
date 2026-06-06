@@ -15,8 +15,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    directory:
-      recurse: false
+    kustomize: {}
     path: k8s/apps/mi-cv-web
     repoURL: https://github.com/MarcoSoto1321/homelab-k8s
     targetRevision: HEAD
