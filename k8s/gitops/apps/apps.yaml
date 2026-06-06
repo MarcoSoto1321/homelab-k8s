@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  destination:
+    namespace: apps
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      recurse: true
+      exclude: '{**/*.example.yaml,**/values.yaml,mi-cv-web/**}'
+    path: k8s/apps
+    repoURL: https://github.com/MarcoSoto1321/homelab-k8s
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
