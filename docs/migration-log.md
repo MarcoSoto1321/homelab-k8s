@@ -93,8 +93,8 @@
 
 **Fecha:** Pendiente
 
-- [ ] ArgoCD
-- [ ] Pipeline de actualizaciones
+- [] ArgoCD
+- [] Pipeline de actualizaciones
 
 ---
 

@@ -49,7 +49,7 @@ Ver [docs/services.md](docs/services.md) para el inventario completo.
 | 3    | Servicios con estado        | ✅ Completada |
 | 4    | Servicios con base de datos | ✅ Completada |
 | 5    | Observabilidad en K8s       | ✅ Completada |
-| 6    | GitOps con ArgoCD           | 🔄 Siguiente  |
+| 6    | GitOps con ArgoCD           | ✅ Completada |
 | 7    | Multi-nodo                  | ⏳ Pendiente  |
 
 Ver [docs/architecture.md](docs/architecture.md) para decisiones técnicas.
