@@ -18,10 +18,15 @@ metadata:
   name: mi-cv-web-ingress
   namespace: apps
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
+  tls:
+    - secretName: marcosoto-dev-tls
+      hosts:
+        - cv.marcosoto.dev
   rules:
-    - host: cv.marco-sr.duckdns.org
+    - host: cv.marcosoto.dev
       http:
         paths:
           - path: /
