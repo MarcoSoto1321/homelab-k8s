@@ -5,6 +5,11 @@ metadata:
   namespace: infra # debe estar en el mismo namespace donde Traefik busca el Secret
 spec:
   secretName: marcosoto-dev-tls # nombre del Secret que se crea con el certificado
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "apps,argocd,monitoring"
   issuerRef:
     name: letsencrypt-cloudflare
     kind: ClusterIssuer
