@@ -24,7 +24,7 @@ spec:
             - containerPort: 80
           env:
             - name: DOMAIN
-              value: "https://vault.marco-sr.duckdns.org"
+              value: "https://vault.marcosoto.dev"
             - name: SIGNUPS_ALLOWED
               value: "false"
             - name: ROCKET_ADDRESS
