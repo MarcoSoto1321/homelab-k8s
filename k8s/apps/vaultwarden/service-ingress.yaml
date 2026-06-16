@@ -18,10 +18,15 @@ metadata:
   name: vaultwarden-ingress
   namespace: apps
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
+  tls: # nuevo: bloque TLS
+    - secretName: marcosoto-dev-tls
+      hosts:
+        - vault.marcosoto.dev
   rules:
-    - host: vault.marco-sr.duckdns.org
+    - host: vault.marcosoto.dev
       http:
         paths:
           - path: /

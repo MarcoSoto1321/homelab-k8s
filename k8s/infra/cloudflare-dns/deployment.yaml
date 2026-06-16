@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflare-ddns
+  namespace: infra
+  labels:
+    app: cloudflare-ddns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflare-ddns
+  template:
+    metadata:
+      labels:
+        app: cloudflare-ddns
+    spec:
+      containers:
+        - name: cloudflare-ddns
+          image: favonia/cloudflare-ddns:latest
+          imagePullPolicy: Always
+          env:
+            # API Token con permisos "Edit zone DNS" para marcosoto.dev
+            - name: CLOUDFLARE_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-ddns-token
+                  key: api-token
+
+            # Dominios a actualizar: root + wildcard para todos los subdominios
+            - name: DOMAINS
+              value: "marcosoto.dev,*.marcosoto.dev"
+
+            # true = tráfico pasa por Cloudflare (oculta tu IP real + DDoS protection)
+            # false = DNS directo a tu IP (útil si tienes servicios que no toleran proxy)
+            - name: PROXIED
+              value: "true"
+
+            # Intervalo de chequeo de IP (por defecto 5 minutos)
+            - name: UPDATE_CRON
+              value: "*/5 * * * *"
+
+            # Solo IPv4 (la Pi 5 probablemente no tiene IPv6 nativa)
+            - name: IP6_PROVIDER
+              value: "none"
+
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+
+          # El contenedor no necesita privilegios ni acceso al filesystem
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+      restartPolicy: Always
+
+      # Tolerations por si en el futuro agregas nodos con taints
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"

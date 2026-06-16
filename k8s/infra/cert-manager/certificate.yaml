@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: marcosoto-dev-wildcard
+  namespace: infra # debe estar en el mismo namespace donde Traefik busca el Secret
+spec:
+  secretName: marcosoto-dev-tls # nombre del Secret que se crea con el certificado
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+  dnsNames:
+    - "marcosoto.dev" # dominio raíz
+    - "*.marcosoto.dev" # wildcard — cubre vault.marcosoto.dev, n8n.marcosoto.dev, etc.
