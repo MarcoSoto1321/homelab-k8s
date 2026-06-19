@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudflare-ddns
+  name: cloudflare-ddns-cv
   namespace: infra
   labels:
     app: cloudflare-ddns
-    instance: wildcard
+    instance: cv
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: cloudflare-ddns
-      instance: wildcard
+      instance: cv
   template:
     metadata:
       labels:
         app: cloudflare-ddns
-        instance: wildcard
+        instance: cv
     spec:
       containers:
         - name: cloudflare-ddns
@@ -29,15 +29,13 @@ spec:
                   name: cloudflare-ddns-token
                   key: api-token
             - name: DOMAINS
-              value: "marcosoto.dev,*.marcosoto.dev"
+              value: "cv.marcosoto.dev"
             - name: PROXIED
-              value: "false"
+              value: "true"
             - name: RECORD_COMMENT
-              value: "managed-by-ddns-wildcard"
+              value: "managed-by-ddns-cv"
             - name: MANAGED_RECORDS_COMMENT_REGEX
-              value: "^managed-by-ddns-wildcard$"
-            - name: CACHE_EXPIRATION
-              value: "1ns"
+              value: "^managed-by-ddns-cv$"
             - name: UPDATE_CRON
               value: "*/5 * * * *"
             - name: IP6_PROVIDER
@@ -47,8 +45,8 @@ spec:
               cpu: 10m
               memory: 16Mi
             limits:
-              cpu: 100m
-              memory: 250Mi
+              cpu: 50m
+              memory: 32Mi
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
