@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firefly
+  template:
+    metadata:
+      labels:
+        app: firefly
+    spec:
+      containers:
+        - name: firefly
+          image: fireflyiii/core:latest
+          env:
+            - name: APP_ENV
+              value: production
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secret
+                  key: APP_KEY
+            - name: DB_CONNECTION
+              value: mysql
+            - name: DB_HOST
+              value: firefly-mysql-svc
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_DATABASE
+              value: firefly
+            - name: DB_USERNAME
+              value: firefly
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secret
+                  key: DB_PASSWORD
+            - name: APP_URL
+              value: https://firefly.marcosoto.dev
+            - name: TRUSTED_PROXIES
+              value: "**"
+            - name: STATIC_CRON_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secret
+                  key: STATIC_CRON_TOKEN
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: firefly-data
+              mountPath: /var/www/html/storage/upload
+      volumes:
+        - name: firefly-data
+          persistentVolumeClaim:
+            claimName: firefly-pvc
