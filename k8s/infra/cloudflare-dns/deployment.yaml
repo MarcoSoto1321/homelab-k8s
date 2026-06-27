@@ -37,7 +37,7 @@ spec:
             - name: MANAGED_RECORDS_COMMENT_REGEX
               value: "^managed-by-ddns-wildcard$"
             - name: CACHE_EXPIRATION
-              value: "1ns"
+              value: "5m"
             - name: UPDATE_CRON
               value: "*/5 * * * *"
             - name: IP6_PROVIDER

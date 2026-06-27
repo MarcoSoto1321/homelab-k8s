@@ -1,0 +1,22 @@
+# k8s/gitops/apps/infra.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra
+  namespace: argocd
+spec:
+  destination:
+    namespace: infra
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      recurse: true
+      exclude: "{**/*.example.yaml,**/values.yaml,**/secret.yaml}"
+    path: k8s/infra
+    repoURL: https://github.com/MarcoSoto1321/homelab-k8s
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
