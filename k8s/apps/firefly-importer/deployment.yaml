@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly-importer
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firefly-importer
+  template:
+    metadata:
+      labels:
+        app: firefly-importer
+    spec:
+      containers:
+        - name: firefly-importer
+          image: fireflyiii/data-importer:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            # URL interna del servicio de Firefly dentro del cluster
+            - name: FIREFLY_III_URL
+              value: "http://firefly-svc:80"
+            # URL que abre el usuario en el navegador (para OAuth redirect)
+            - name: VANITY_URL
+              value: "https://firefly.marcosoto.dev"
+            # Misma APP_KEY que usa Firefly — requerida para autenticación
+            - name: FIREFLY_III_ACCESS_TOKEN
+              value: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIwMTlmMGIwYS1hMDI3LTczYTItYTFmZC0xMDJlZjFhN2ZmZTkiLCJqdGkiOiJkM2FiYThjOWI1OTQxNTI4NmQ0ZTFlY2I4M2M0NDg5NDJlOWMzM2VlN2NhYzhjMGYyODUzYWIwZDBjMjNjNDk5NDUyOTcxNTdlNWFjMTBjZiIsImlhdCI6MTc4MjY4NjMwMy45NjQ1ODgsIm5iZiI6MTc4MjY4NjMwMy45NjQ1OTEsImV4cCI6MTgxNDIyMjMwMy45MTQ5OTMsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.ctwJVz7Nm4gUb7fvuZbaJQeKIyTAzn8OwOVmgJIBavP7i7NZ1YSa0bpLT7gQESF-dTQ8Zr3fclQPGm2PTmYMq1zZsPK8W0t-rMO1nSkVN2KNdPCDxHjq9IfTq5G5EYH0zhxhLCgJYZvxssAI_6cdN5U0JujqdL3euYOmpRl0AqeIoP38Z7fD0FZqxEy-7wTAPXokLSoOztJiaK_mPe154rm5jpqNjtVlTGbTx8INGq665MOmxLZXpa-4eP4pMtSXf9Z79TEchMztdD22fUVx887Kb92qh0gphuE0gj9QUvbUFCJ7OHW6tPnYBerZLNlzRa1Y5mx4FkuMgqX7Sn2iNQmuKExslxuaNDyMoiRy-JZ5G8zo226w2EkqkTafc51Se1OH_MMV8ANH7uGXYe7U7joDt26kd_3wH93sIzIpLHG6z8tNnQ8zuTkOy-EiT6RZ1v7WdTBilyuk5cZKAtAqrs_3RdWBbLFfdTwXR6UL_urJ1tp-ybSzms1KUa0Xcyr4Lid4f8WplMpIt8U_mD_eyMuT_0F4bepqQzr4pIpa4LzVE1YRuTK3mWed3QbTT6hnInfiFrwTa3yuXZR_Lzy-BMTp_E3VqhCnbdQEQ5FmCLsGxCJe_CYec1nEA83lusMZxwLHg7PWpMhPiunQwvqLKmjv23BAvEt9Uyt8l7YIjeo" # Se rellena con un Personal Access Token desde la UI de Firefly (ver nota abajo)
+            - name: APP_ENV
+              value: "production"
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: APP_KEY
+                  name: firefly-secret
+            # Permite subir CSVs grandes (estados de cuenta)
+            - name: UPLOAD_SIZE
+              value: "64M"
+            # Timezone
+            - name: TZ
+              value: "America/Mexico_City"
+          volumeMounts:
+            - mountPath: /var/www/html/storage/upload
+              name: firefly-data
+      volumes:
+        - name: firefly-data
+          persistentVolumeClaim:
+            claimName: firefly-pvc
