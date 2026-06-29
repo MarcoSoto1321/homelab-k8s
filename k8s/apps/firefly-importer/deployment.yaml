@@ -20,6 +20,8 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: TRUSTED_PROXIES
+              value: "**"
             # URL interna del servicio de Firefly dentro del cluster
             - name: FIREFLY_III_URL
               value: "http://firefly-svc:80"
