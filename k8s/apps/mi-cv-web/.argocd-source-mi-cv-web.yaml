@@ -1,3 +1,3 @@
 kustomize:
   images:
-  - ghcr.io/marcosoto1321/mi-cv-web:latest@sha256:655abe7dee213ba162505304854c1eda213a58ae7f7699e7a13cc33fafab09b8
+  - ghcr.io/marcosoto1321/mi-cv-web:latest@sha256:bf0ec5e37577cacbb80c9ac9e5c98da57b96c64fc351d0d5f62b4eb036556da7
