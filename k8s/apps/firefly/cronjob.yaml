@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: firefly-cron
+  namespace: apps
+spec:
+  timeZone: "America/Mexico_City"
+  schedule: "0 3 * * *" # 6:30 AM hora CDMX
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: firefly-cron
+              image: fireflyiii/core:latest
+              command: ["php", "artisan", "firefly-iii:cron"]
+              envFrom:
+                - secretRef:
+                    name: firefly-secret
+              env:
+                - name: DB_HOST
+                  value: firefly-mysql-svc
+                - name: DB_CONNECTION
+                  value: mysql
+                - name: DB_PORT
+                  value: "3306"
+                - name: DB_DATABASE
+                  value: firefly
+                - name: DB_USERNAME
+                  value: firefly
