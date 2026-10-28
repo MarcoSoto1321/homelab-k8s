@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: cloudflare-ddns
-          image: favonia/cloudflare-ddns:latest
-          imagePullPolicy: Always
+          image: favonia/cloudflare-ddns:1.18.0
+          imagePullPolicy: IfNotPresent
           env:
             - name: CLOUDFLARE_API_TOKEN
               valueFrom:
