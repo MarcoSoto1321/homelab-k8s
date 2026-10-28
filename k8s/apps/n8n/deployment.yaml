@@ -6,7 +6,7 @@ metadata:
   labels:
     app: n8n
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: n8n
@@ -23,20 +23,33 @@ spec:
         fsGroup: 1000
       containers:
         - name: n8n
-          image: n8nio/n8n:latest
+          image: n8nio/n8n:2.45.5
           ports:
             - containerPort: 5678
           env:
             - name: N8N_HOST
-              value: "n8n.marco-sr.duckdns.org"
+              value: "n8n.marcosoto.dev"
             - name: N8N_PORT
               value: "5678"
             - name: N8N_PROTOCOL
               value: "https"
             - name: WEBHOOK_URL
-              value: "https://n8n.marco-sr.duckdns.org/"
+              value: "https://n8n.marcosoto.dev/"
             - name: GENERIC_TIMEZONE
               value: "America/Mexico_City"
+            - name: TZ
+              value: "America/Mexico_City"
+            # Detrás de NPM → Traefik: confiar en X-Forwarded-* del proxy
+            - name: N8N_PROXY_HOPS
+              value: "1"
+            # Sin telemetría: aquí pasan datos personales (Notion, Telegram)
+            - name: N8N_DIAGNOSTICS_ENABLED
+              value: "false"
+            # Limpiar historial de ejecuciones (el PVC es de 2Gi y guarda transcripciones)
+            - name: EXECUTIONS_DATA_PRUNE
+              value: "true"
+            - name: EXECUTIONS_DATA_MAX_AGE
+              value: "168"
             - name: N8N_USER_FOLDER
               value: "/home/node/.n8n"
             - name: N8N_ENCRYPTION_KEY
