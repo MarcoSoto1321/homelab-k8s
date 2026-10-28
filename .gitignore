@@ -5,7 +5,7 @@
 *.env
 
 # Backups locales
-backups/
+/backups/
 
 # Archivos de sistema
 .DS_Store

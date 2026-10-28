@@ -1,0 +1,117 @@
+# Backup diario de las bases del homelab:
+#   - Firefly III   → mysqldump de firefly-mysql (MySQL 8.0)
+#   - Vaultwarden   → copia en caliente de SQLite + llaves, adjuntos y config
+#   - n8n           → copia en caliente de SQLite
+# Destino: backups-pvc (NVMe local). Retención: RETENTION_DAYS.
+# ⚠️ Mismo disco que los datos: protege contra errores y upgrades fallidos,
+#    NO contra la falla del NVMe. Falta copiarlos fuera de la Pi.
+# ⚠️ Monta PVCs RWO de otros pods: funciona porque es un solo nodo.
+#    En multi-nodo (Fase 7) habrá que fijarlo al mismo nodo o usar Longhorn.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backups
+  namespace: apps
+  labels:
+    app: backups
+spec:
+  schedule: "30 3 * * *"
+  timeZone: "America/Mexico_City"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: backups
+        spec:
+          restartPolicy: Never
+          containers:
+            # --- Firefly: mysqldump con el mismo cliente que el servidor ---
+            - name: firefly-mysql
+              image: mysql:8.0
+              env:
+                - name: MYSQL_PWD
+                  valueFrom:
+                    secretKeyRef:
+                      name: firefly-secret
+                      key: DB_PASSWORD
+                - name: RETENTION_DAYS
+                  value: "14"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  mkdir -p /backups/firefly
+                  OUT=/backups/firefly/firefly-$(date +%Y%m%d-%H%M).sql.gz
+                  mysqldump -h firefly-mysql-svc -u root \
+                    --single-transaction --routines --triggers --databases firefly \
+                    | gzip > "$OUT.tmp"
+                  mv "$OUT.tmp" "$OUT"
+                  find /backups/firefly -name '*.sql.gz' -mtime +"$RETENTION_DAYS" -delete
+                  ls -lh "$OUT"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests: { cpu: 50m, memory: 64Mi }
+                limits: { cpu: 500m, memory: 256Mi }
+            # --- Vaultwarden y n8n: SQLite con .backup (seguro en caliente) ---
+            - name: sqlite
+              image: alpine:3.22
+              env:
+                - name: RETENTION_DAYS
+                  value: "14"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  apk add --no-cache sqlite tar gzip >/dev/null
+                  TS=$(date +%Y%m%d-%H%M)
+
+                  # Vaultwarden: base + llaves RSA + config + adjuntos/sends
+                  mkdir -p /backups/vaultwarden /tmp/vw
+                  sqlite3 /vw/db.sqlite3 ".backup '/tmp/vw/db.sqlite3'"
+                  for f in rsa_key.pem rsa_key.pub.pem config.json; do
+                    [ -f "/vw/$f" ] && cp "/vw/$f" /tmp/vw/
+                  done
+                  for d in attachments sends; do
+                    [ -d "/vw/$d" ] && cp -r "/vw/$d" /tmp/vw/
+                  done
+                  tar -czf "/backups/vaultwarden/vaultwarden-$TS.tar.gz" -C /tmp/vw .
+
+                  # n8n (ojo: N8N_USER_FOLDER deja la base en .n8n/.n8n/)
+                  mkdir -p /backups/n8n
+                  if [ -f /n8n/.n8n/database.sqlite ]; then
+                    sqlite3 /n8n/.n8n/database.sqlite ".backup '/tmp/n8n.sqlite'"
+                    gzip -c /tmp/n8n.sqlite > "/backups/n8n/n8n-$TS.sqlite.gz"
+                  else
+                    echo "AVISO: no existe /n8n/.n8n/database.sqlite"
+                  fi
+
+                  find /backups/vaultwarden /backups/n8n -type f -mtime +"$RETENTION_DAYS" -delete
+                  ls -lh /backups/vaultwarden /backups/n8n | tail -n +1
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                - name: vaultwarden
+                  mountPath: /vw
+                - name: n8n
+                  mountPath: /n8n
+              resources:
+                requests: { cpu: 50m, memory: 32Mi }
+                limits: { cpu: 500m, memory: 128Mi }
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-pvc
+            - name: vaultwarden
+              persistentVolumeClaim:
+                claimName: vaultwarden-pvc
+            - name: n8n
+              persistentVolumeClaim:
+                claimName: n8n-pvc
