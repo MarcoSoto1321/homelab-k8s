@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: firefly
-          image: fireflyiii/core:latest
+          image: fireflyiii/core:version-6.7.9
           env:
             - name: APP_ENV
               value: production

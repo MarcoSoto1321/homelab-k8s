@@ -16,7 +16,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: firefly-cron
-              image: fireflyiii/core:latest
+              image: fireflyiii/core:version-6.7.9
               command: ["php", "artisan", "firefly-iii:cron"]
               envFrom:
                 - secretRef:
