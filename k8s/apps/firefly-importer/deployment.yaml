@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: firefly-importer
-          image: fireflyiii/data-importer:latest
+          image: fireflyiii/data-importer:version-2.3.5
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
